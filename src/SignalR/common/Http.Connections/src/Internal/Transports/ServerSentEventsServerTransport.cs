@@ -37,6 +37,7 @@ namespace Microsoft.AspNetCore.Http.Connections.Internal.Transports
             context.Response.ContentType = "text/event-stream";
             context.Response.Headers[HeaderNames.CacheControl] = "no-cache,no-store";
             context.Response.Headers[HeaderNames.Pragma] = "no-cache";
+            context.Response.Headers[CustomHeaderNames.LongRunning] = "true";
 
             // Make sure we disable all response buffering for SSE
             var bufferingFeature = context.Features.Get<IHttpResponseBodyFeature>()!;
