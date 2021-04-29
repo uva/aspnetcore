@@ -12,6 +12,23 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
         // This pass runs earlier than our other passes that 'lower' specific kinds of attributes.
         public override int Order => 0;
 
+        private TypeNameFeature _typeNameFeature;
+
+        private TypeNameFeature TypeNameFeature
+        {
+            get
+            {
+                // Doing lazy intialization here to avoid making things really complicated when we don't
+                // need to exercise this code in tests.
+                if (_typeNameFeature == null)
+                {
+                    _typeNameFeature = GetRequiredFeature<TypeNameFeature>();
+                }
+
+                return _typeNameFeature;
+            }
+        }
+
         protected override void ExecuteCore(RazorCodeDocument codeDocument, DocumentIntermediateNode documentNode)
         {
             if (!IsComponentDocument(documentNode))
@@ -82,7 +99,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
                 component.Diagnostics.Add(node.Diagnostics[i]);
             }
 
-            var visitor = new ComponentRewriteVisitor(component);
+            var visitor = new ComponentRewriteVisitor(component, this);
             visitor.Visit(node);
 
             // Fixup the parameter names of child content elements. We can't do this during the rewrite
@@ -119,10 +136,13 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
             private readonly ComponentIntermediateNode _component;
             private readonly IntermediateNodeCollection _children;
 
-            public ComponentRewriteVisitor(ComponentIntermediateNode component)
+            private readonly ComponentLoweringPass _pass;
+
+            public ComponentRewriteVisitor(ComponentIntermediateNode component, ComponentLoweringPass pass)
             {
                 _component = component;
                 _children = component.Children;
+                _pass = pass;
             }
 
             public override void VisitTagHelper(TagHelperIntermediateNode node)
@@ -389,7 +409,25 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
                     return;
                 }
 
+                if (node.BoundAttribute != null && _pass.TypeNameFeature.IsLambda(GetContent(node)))
+                {
+                    // node.BoundAttribute.Metadata.Add("IsLambda", bool.TrueString);
+                    node.Annotations["IsLambda"] = bool.TrueString;
+                    _children.Add(new ComponentAttributeIntermediateNode(node) {
+                        Annotations =
+                        {
+                            [ComponentMetadata.Common.IsLambda] = bool.TrueString,
+                        },
+                    });
+                    return;
+                }
+
                 _children.Add(new ComponentAttributeIntermediateNode(node));
+
+                string GetContent(TagHelperPropertyIntermediateNode node)
+                {
+                    return string.Join(string.Empty, node.FindDescendantNodes<IntermediateToken>().Where(t => t.IsCSharp).Select(t => t.Content));
+                }
             }
 
             public override void VisitTagHelperDirectiveAttribute(TagHelperDirectiveAttributeIntermediateNode node)

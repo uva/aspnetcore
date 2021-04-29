@@ -44,6 +44,8 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
             public static readonly string DirectiveAttribute = "Common.DirectiveAttribute";
 
             public static readonly string AddAttributeMethodName = "Common.AddAttributeMethodName";
+
+            public static readonly string IsLambda = "IsLambda";
         }
 
         public static class Bind

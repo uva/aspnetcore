@@ -578,7 +578,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
                 if ((node.BoundAttribute?.IsDelegateProperty() ?? false) ||
                     (node.BoundAttribute?.IsChildContentProperty() ?? false))
                 {
-                    if (canTypeCheck)
+                    if (canTypeCheck && (string.Equals(node.Annotations[ComponentMetadata.Common.IsLambda], bool.TrueString) || node.TagHelper.IsBindTagHelper()))
                     {
                         context.CodeWriter.Write("new ");
                         context.CodeWriter.Write(node.TypeName);
@@ -590,7 +590,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Components
                         WriteCSharpToken(context, tokens[i]);
                     }
 
-                    if (canTypeCheck)
+                    if (canTypeCheck && (string.Equals(node.Annotations[ComponentMetadata.Common.IsLambda], bool.TrueString) || node.TagHelper.IsBindTagHelper()))
                     {
                         context.CodeWriter.Write(")");
                     }
