@@ -1,6 +1,14 @@
 ﻿Microsoft.Extensions.Logging.W3C.W3CLoggerFactoryExtensions
+Microsoft.Extensions.Logging.W3C.W3CLoggerOptions
+Microsoft.Extensions.Logging.W3C.W3CLoggerOptions.FileName.get -> string
+Microsoft.Extensions.Logging.W3C.W3CLoggerOptions.FileName.set -> void
+Microsoft.Extensions.Logging.W3C.W3CLoggerOptions.FileSizeLimit.get -> int?
+Microsoft.Extensions.Logging.W3C.W3CLoggerOptions.FileSizeLimit.set -> void
+Microsoft.Extensions.Logging.W3C.W3CLoggerOptions.RetainedFileCountLimit.get -> int?
+Microsoft.Extensions.Logging.W3C.W3CLoggerOptions.RetainedFileCountLimit.set -> void
+Microsoft.Extensions.Logging.W3C.W3CLoggerOptions.W3CLoggerOptions() -> void
 Microsoft.Extensions.Logging.W3C.W3CLoggerProvider
 Microsoft.Extensions.Logging.W3C.W3CLoggerProvider.CreateLogger(string categoryName) -> Microsoft.Extensions.Logging.ILogger
 Microsoft.Extensions.Logging.W3C.W3CLoggerProvider.Dispose() -> void
-Microsoft.Extensions.Logging.W3C.W3CLoggerProvider.W3CLoggerProvider() -> void
+Microsoft.Extensions.Logging.W3C.W3CLoggerProvider.W3CLoggerProvider(Microsoft.Extensions.Options.IOptionsMonitor<Microsoft.Extensions.Logging.W3C.W3CLoggerOptions> options) -> void
 static Microsoft.Extensions.Logging.W3C.W3CLoggerFactoryExtensions.AddW3CLogger(this Microsoft.Extensions.Logging.ILoggingBuilder builder) -> Microsoft.Extensions.Logging.ILoggingBuilder

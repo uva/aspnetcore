@@ -7,6 +7,7 @@ namespace Microsoft.Extensions.Logging.W3C
     {
 
         private readonly string _name;
+        private readonly W3CLoggerProcessor _messageQueue;
 
         internal W3CLogger(string name)
         {
@@ -16,7 +17,7 @@ namespace Microsoft.Extensions.Logging.W3C
             }
 
             _name = name;
-            _hasWrittenDirectives = false;
+            _messageQueue = new W3CLoggerProcessor();
         }
 
         public IDisposable BeginScope<TState>(TState state)
