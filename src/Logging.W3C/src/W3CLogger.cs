@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 
 namespace Microsoft.Extensions.Logging.W3C
 {
@@ -15,6 +16,7 @@ namespace Microsoft.Extensions.Logging.W3C
             }
 
             _name = name;
+            _hasWrittenDirectives = false;
         }
 
         public IDisposable BeginScope<TState>(TState state)
@@ -29,10 +31,13 @@ namespace Microsoft.Extensions.Logging.W3C
 
         public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
         {
+            Debugger.Launch();
+            Debugger.Break();
             if (!IsEnabled(logLevel))
             {
                 return;
             }
+
             throw new NotImplementedException();
         }
     }
