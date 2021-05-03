@@ -2,6 +2,7 @@ using System.Text.Json;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.W3C;
 
 namespace HttpLogging.Sample
 {
@@ -25,6 +26,7 @@ namespace HttpLogging.Sample
                             Indented = true
                         };
                     });
+                    logging.AddW3CLogger();
                 })
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
