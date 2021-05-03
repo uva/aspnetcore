@@ -1,0 +1,6 @@
+﻿Microsoft.Extensions.Logging.W3C.W3CLoggerFactoryExtensions
+Microsoft.Extensions.Logging.W3C.W3CLoggerProvider
+Microsoft.Extensions.Logging.W3C.W3CLoggerProvider.CreateLogger(string categoryName) -> Microsoft.Extensions.Logging.ILogger
+Microsoft.Extensions.Logging.W3C.W3CLoggerProvider.Dispose() -> void
+Microsoft.Extensions.Logging.W3C.W3CLoggerProvider.W3CLoggerProvider() -> void
+static Microsoft.Extensions.Logging.W3C.W3CLoggerFactoryExtensions.AddW3CLogger(this Microsoft.Extensions.Logging.ILoggingBuilder builder) -> Microsoft.Extensions.Logging.ILoggingBuilder
