@@ -223,7 +223,7 @@ function parseMouseEvent(event: MouseEvent): MouseEventArgs {
     ctrlKey: event.ctrlKey,
     shiftKey: event.shiftKey,
     altKey: event.altKey,
-    metaKey: event.metaKey
+    metaKey: event.metaKey,
   };
 }
 
