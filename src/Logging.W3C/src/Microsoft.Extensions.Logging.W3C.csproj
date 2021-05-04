@@ -6,4 +6,8 @@
     <IsShipping>true</IsShipping>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Reference Include="Microsoft.AspNetCore.HttpLogging" />
+  </ItemGroup>
+
 </Project>

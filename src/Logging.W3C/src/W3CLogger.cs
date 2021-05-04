@@ -1,5 +1,8 @@
 using System;
 using Microsoft.Extensions.Options;
+using Microsoft.AspNetCore.HttpLogging;
+using System.Diagnostics;
+using System.Collections.Generic;
 
 namespace Microsoft.Extensions.Logging.W3C
 {
@@ -39,7 +42,13 @@ namespace Microsoft.Extensions.Logging.W3C
                 return;
             }
 
-            throw new NotImplementedException();
+            if (state is IReadOnlyCollection<KeyValuePair<string, object>> stateProperties)
+            {
+                foreach (KeyValuePair<string, object> item in stateProperties)
+                {
+                    _messageQueue.EnqueueMessage(item.ToString());
+                }
+            }
         }
     }
 }
