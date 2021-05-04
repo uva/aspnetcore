@@ -5,8 +5,8 @@ namespace Microsoft.Extensions.Logging.W3C
     public class W3CLoggerOptions
     {
         private int? _fileSizeLimit = 10 * 1024 * 1024;
-        private int? _retainedFileCountLimit = 2;
         private string _fileName = "serverlog-";
+        private string _logDirectory = "C:\\code\\scratch\\W3CLogs";
 
         /// <summary>
         /// Gets or sets a strictly positive value representing the maximum log size in bytes or null for no limit.
@@ -27,26 +27,9 @@ namespace Microsoft.Extensions.Logging.W3C
         }
 
         /// <summary>
-        /// Gets or sets a strictly positive value representing the maximum retained file count or null for no limit.
-        /// Defaults to <c>2</c>.
-        /// </summary>
-        public int? RetainedFileCountLimit
-        {
-            get { return _retainedFileCountLimit; }
-            set
-            {
-                if (value <= 0)
-                {
-                    throw new ArgumentOutOfRangeException(nameof(value), $"{nameof(RetainedFileCountLimit)} must be positive.");
-                }
-                _retainedFileCountLimit = value;
-            }
-        }
-
-        /// <summary>
         /// Gets or sets a string representing the prefix of the file name used to store the logging information.
-        /// The current date, in the format YYYYMMDD will be added after the given value.
-        /// Defaults to <c>diagnostics-</c>.
+        /// A GUID will be added after the given value.
+        /// Defaults to <c>serverlog-</c>.
         /// </summary>
         public string FileName
         {
@@ -61,6 +44,21 @@ namespace Microsoft.Extensions.Logging.W3C
             }
         }
 
-        internal string LogDirectory { get; set; }
+        /// <summary>
+        /// Gets or sets a string representing the directory where the log file will be written to
+        /// Defaults to <c>something</c>.
+        /// </summary>
+        public string LogDirectory
+        {
+            get { return _logDirectory; }
+            set
+            {
+                if (string.IsNullOrEmpty(value))
+                {
+                    throw new ArgumentException(nameof(value));
+                }
+                _logDirectory = value;
+            }
+        }
     }
 }

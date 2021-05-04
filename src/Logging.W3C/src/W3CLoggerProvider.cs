@@ -20,7 +20,7 @@ namespace Microsoft.Extensions.Logging.W3C
         {
             return _loggers.TryGetValue(categoryName, out W3CLogger logger) ?
                 logger :
-                _loggers.GetOrAdd(categoryName, new W3CLogger(categoryName));
+                _loggers.GetOrAdd(categoryName, new W3CLogger(categoryName, _options));
         }
 
         public void Dispose()

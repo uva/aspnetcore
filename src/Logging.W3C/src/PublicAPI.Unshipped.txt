@@ -4,8 +4,8 @@ Microsoft.Extensions.Logging.W3C.W3CLoggerOptions.FileName.get -> string
 Microsoft.Extensions.Logging.W3C.W3CLoggerOptions.FileName.set -> void
 Microsoft.Extensions.Logging.W3C.W3CLoggerOptions.FileSizeLimit.get -> int?
 Microsoft.Extensions.Logging.W3C.W3CLoggerOptions.FileSizeLimit.set -> void
-Microsoft.Extensions.Logging.W3C.W3CLoggerOptions.RetainedFileCountLimit.get -> int?
-Microsoft.Extensions.Logging.W3C.W3CLoggerOptions.RetainedFileCountLimit.set -> void
+Microsoft.Extensions.Logging.W3C.W3CLoggerOptions.LogDirectory.get -> string
+Microsoft.Extensions.Logging.W3C.W3CLoggerOptions.LogDirectory.set -> void
 Microsoft.Extensions.Logging.W3C.W3CLoggerOptions.W3CLoggerOptions() -> void
 Microsoft.Extensions.Logging.W3C.W3CLoggerProvider
 Microsoft.Extensions.Logging.W3C.W3CLoggerProvider.CreateLogger(string categoryName) -> Microsoft.Extensions.Logging.ILogger

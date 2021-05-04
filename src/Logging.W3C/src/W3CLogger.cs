@@ -1,5 +1,5 @@
 using System;
-using System.Diagnostics;
+using Microsoft.Extensions.Options;
 
 namespace Microsoft.Extensions.Logging.W3C
 {
@@ -8,8 +8,9 @@ namespace Microsoft.Extensions.Logging.W3C
 
         private readonly string _name;
         private readonly W3CLoggerProcessor _messageQueue;
+        private readonly IOptionsMonitor<W3CLoggerOptions> _options;
 
-        internal W3CLogger(string name)
+        internal W3CLogger(string name, IOptionsMonitor<W3CLoggerOptions> options)
         {
             if (name == null)
             {
@@ -17,7 +18,8 @@ namespace Microsoft.Extensions.Logging.W3C
             }
 
             _name = name;
-            _messageQueue = new W3CLoggerProcessor();
+            _options = options;
+            _messageQueue = new W3CLoggerProcessor(_options);
         }
 
         public IDisposable BeginScope<TState>(TState state)
@@ -32,8 +34,6 @@ namespace Microsoft.Extensions.Logging.W3C
 
         public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
         {
-            Debugger.Launch();
-            Debugger.Break();
             if (!IsEnabled(logLevel))
             {
                 return;

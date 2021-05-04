@@ -1,6 +1,12 @@
 using System;
 using System.Collections.Concurrent;
+using System.Diagnostics;
+using System.Globalization;
+using System.IO;
+using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.Extensions.Options;
 
 namespace Microsoft.Extensions.Logging.W3C
 {
@@ -8,18 +14,26 @@ namespace Microsoft.Extensions.Logging.W3C
     {
         private const int _maxQueuedMessages = 1024;
 
-        private readonly BlockingCollection<string> _messageQueue = new BlockingCollection<string>(_maxQueuedMessages);
-        private readonly Thread _outputThread;
+        private readonly string _path;
+        private readonly string _fileName;
+        private readonly int? _maxFileSize;
 
-        public W3CLoggerProcessor()
+        private readonly BlockingCollection<string> _messageQueue = new BlockingCollection<string>(_maxQueuedMessages);
+        private Task _outputTask;
+
+        public W3CLoggerProcessor(IOptionsMonitor<W3CLoggerOptions> options)
         {
+            var loggerOptions = options.CurrentValue;
+            _path = loggerOptions.LogDirectory;
+            _fileName = loggerOptions.FileName;
+            _maxFileSize = loggerOptions.FileSizeLimit;
+
+            Directory.CreateDirectory(_path);
+
+            WriteDirectives();
+
             // Start W3C message queue processor
-            _outputThread = new Thread(ProcessLogQueue)
-            {
-                IsBackground = true,
-                Name = "W3C logger queue processing thread"
-            };
-            _outputThread.Start();
+            _outputTask = Task.Run(ProcessLogQueue);
         }
 
         public void EnqueueMessage(string message)
@@ -35,18 +49,23 @@ namespace Microsoft.Extensions.Logging.W3C
             }
         }
 
-        internal void WriteMessage(string entry)
+        internal async Task WriteMessageAsync(string entry, StreamWriter streamWriter)
         {
-            console.Write(entry.Message);
+            await streamWriter.WriteLineAsync(entry);
+            await streamWriter.FlushAsync();
         }
 
-        private void ProcessLogQueue()
+        private async Task ProcessLogQueue()
         {
             try
             {
-                foreach (string message in _messageQueue.GetConsumingEnumerable())
+                var fullName = Path.Combine(_path, $"{_fileName}{Guid.NewGuid().ToString()}.log");
+                using (var streamWriter = File.AppendText(fullName))
                 {
-                    WriteMessage(message);
+                    foreach (string message in _messageQueue.GetConsumingEnumerable())
+                    {
+                        await WriteMessageAsync(message, streamWriter);
+                    }
                 }
             }
             catch
@@ -61,7 +80,16 @@ namespace Microsoft.Extensions.Logging.W3C
 
         public void Dispose()
         {
-            throw new NotImplementedException();
+        }
+
+        private void WriteDirectives()
+        {
+            EnqueueMessage("#Version: 1.0");
+
+            var startTimeBuilder = new StringBuilder();
+            startTimeBuilder.Append("#Start-Date: ");
+            startTimeBuilder.Append(DateTimeOffset.Now.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture));
+            EnqueueMessage(startTimeBuilder.ToString());
         }
     }
 }
