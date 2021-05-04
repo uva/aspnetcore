@@ -6,8 +6,23 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
+using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.RenderTree;
-using static Microsoft.AspNetCore.Internal.LinkerFlags;
+
+[assembly: JsonSerializable(typeof(WebEventDescriptor))]
+[assembly: JsonSerializable(typeof(ChangeEventArgs))]
+[assembly: JsonSerializable(typeof(ClipboardEventArgs))]
+[assembly: JsonSerializable(typeof(DragEventArgs))]
+[assembly: JsonSerializable(typeof(ErrorEventArgs))]
+[assembly: JsonSerializable(typeof(FocusEventArgs))]
+[assembly: JsonSerializable(typeof(KeyboardEventArgs))]
+[assembly: JsonSerializable(typeof(MouseEventArgs))]
+[assembly: JsonSerializable(typeof(PointerEventArgs))]
+[assembly: JsonSerializable(typeof(ProgressEventArgs))]
+[assembly: JsonSerializable(typeof(TouchEventArgs))]
+[assembly: JsonSerializable(typeof(WheelEventArgs))]
 
 namespace Microsoft.AspNetCore.Components.Web
 {
@@ -15,12 +30,16 @@ namespace Microsoft.AspNetCore.Components.Web
     {
         // This class represents the second half of parsing incoming event data,
         // once the event ID (and possibly the type of the eventArgs) becomes known.
-        public static WebEventData Parse(Renderer renderer, JsonSerializerOptions jsonSerializerOptions, string eventDescriptorJson, string eventArgsJson)
+        public static WebEventData Parse(
+            Renderer renderer,
+            JsonSerializerContext jsonSerializerContext,
+            string eventDescriptorJson,
+            string eventArgsJson)
         {
             WebEventDescriptor eventDescriptor;
             try
             {
-                eventDescriptor = Deserialize<WebEventDescriptor>(eventDescriptorJson);
+                eventDescriptor = Deserialize<WebEventDescriptor>(eventDescriptorJson, jsonSerializerContext);
             }
             catch (Exception e)
             {
@@ -29,14 +48,18 @@ namespace Microsoft.AspNetCore.Components.Web
 
             return Parse(
                 renderer,
-                jsonSerializerOptions,
+                jsonSerializerContext,
                 eventDescriptor,
                 eventArgsJson);
         }
 
-        public static WebEventData Parse(Renderer renderer, JsonSerializerOptions jsonSerializerOptions, WebEventDescriptor eventDescriptor, string eventArgsJson)
+        public static WebEventData Parse(
+            Renderer renderer,
+            JsonSerializerContext jsonSerializerContext,
+            WebEventDescriptor eventDescriptor,
+            string eventArgsJson)
         {
-            var parsedEventArgs = ParseEventArgsJson(renderer, jsonSerializerOptions, eventDescriptor.EventHandlerId, eventDescriptor.EventName, eventArgsJson);
+            var parsedEventArgs = ParseEventArgsJson(renderer, jsonSerializerContext, eventDescriptor.EventHandlerId, eventDescriptor.EventName, eventArgsJson);
             return new WebEventData(
                 eventDescriptor.BrowserRendererId,
                 eventDescriptor.EventHandlerId,
@@ -60,18 +83,23 @@ namespace Microsoft.AspNetCore.Components.Web
 
         public EventArgs EventArgs { get; }
 
-        private static EventArgs ParseEventArgsJson(Renderer renderer, JsonSerializerOptions jsonSerializerOptions, ulong eventHandlerId, string eventName, string eventArgsJson)
+        private static EventArgs ParseEventArgsJson(
+            Renderer renderer,
+            JsonSerializerContext jsonSerializerContext,
+            ulong eventHandlerId,
+            string eventName,
+            string eventArgsJson)
         {
             try
             {
-                if (TryDeserializeStandardWebEventArgs(eventName, eventArgsJson, out var eventArgs))
+                if (TryDeserializeStandardWebEventArgs(eventName, eventArgsJson, jsonSerializerContext, out var eventArgs))
                 {
                     return eventArgs;
                 }
 
                 // For custom events, the args type is determined from the associated delegate
                 var eventArgsType = renderer.GetEventArgsType(eventHandlerId);
-                return (EventArgs)JsonSerializer.Deserialize(eventArgsJson, eventArgsType, jsonSerializerOptions)!;
+                return (EventArgs)JsonSerializer.Deserialize(eventArgsJson, eventArgsType, jsonSerializerContext.Options)!;
             }
             catch (Exception e)
             {
@@ -79,9 +107,11 @@ namespace Microsoft.AspNetCore.Components.Web
             }
         }
 
-        [DynamicDependency(JsonSerialized, typeof(DataTransfer))]
-        [DynamicDependency(JsonSerialized, typeof(DataTransferItem))]
-        private static bool TryDeserializeStandardWebEventArgs(string eventName, string eventArgsJson, [NotNullWhen(true)] out EventArgs? eventArgs)
+        private static bool TryDeserializeStandardWebEventArgs(
+            string eventName,
+            string eventArgsJson,
+            JsonSerializerContext jsonSerializerContext,
+            [NotNullWhen(true)] out EventArgs? eventArgs)
         {
             // For back-compatibility, we recognize the built-in list of web event names and hard-code
             // rules about the deserialization type for their eventargs. This makes it possible to declare
@@ -96,13 +126,13 @@ namespace Microsoft.AspNetCore.Components.Web
                 case "change":
                     // Special case for ChangeEventArgs because its value type can be one of
                     // several types, and System.Text.Json doesn't pick types dynamically
-                    eventArgs = DeserializeChangeEventArgs(eventArgsJson);
+                    eventArgs = DeserializeChangeEventArgs(eventArgsJson, jsonSerializerContext);
                     return true;
 
                 case "copy":
                 case "cut":
                 case "paste":
-                    eventArgs = Deserialize<ClipboardEventArgs>(eventArgsJson);
+                    eventArgs = Deserialize<ClipboardEventArgs>(eventArgsJson, jsonSerializerContext);
                     return true;
 
                 case "drag":
@@ -112,20 +142,20 @@ namespace Microsoft.AspNetCore.Components.Web
                 case "dragover":
                 case "dragstart":
                 case "drop":
-                    eventArgs = Deserialize<DragEventArgs>(eventArgsJson);
+                    eventArgs = Deserialize<DragEventArgs>(eventArgsJson, jsonSerializerContext);
                     return true;
 
                 case "focus":
                 case "blur":
                 case "focusin":
                 case "focusout":
-                    eventArgs = Deserialize<FocusEventArgs>(eventArgsJson);
+                    eventArgs = Deserialize<FocusEventArgs>(eventArgsJson, jsonSerializerContext);
                     return true;
 
                 case "keydown":
                 case "keyup":
                 case "keypress":
-                    eventArgs = Deserialize<KeyboardEventArgs>(eventArgsJson);
+                    eventArgs = Deserialize<KeyboardEventArgs>(eventArgsJson, jsonSerializerContext);
                     return true;
 
                 case "contextmenu":
@@ -136,11 +166,11 @@ namespace Microsoft.AspNetCore.Components.Web
                 case "mousedown":
                 case "mouseup":
                 case "dblclick":
-                    eventArgs = Deserialize<MouseEventArgs>(eventArgsJson);
+                    eventArgs = Deserialize<MouseEventArgs>(eventArgsJson, jsonSerializerContext);
                     return true;
 
                 case "error":
-                    eventArgs = Deserialize<ErrorEventArgs>(eventArgsJson);
+                    eventArgs = Deserialize<ErrorEventArgs>(eventArgsJson, jsonSerializerContext);
                     return true;
 
                 case "loadstart":
@@ -149,7 +179,7 @@ namespace Microsoft.AspNetCore.Components.Web
                 case "load":
                 case "loadend":
                 case "progress":
-                    eventArgs = Deserialize<ProgressEventArgs>(eventArgsJson);
+                    eventArgs = Deserialize<ProgressEventArgs>(eventArgsJson, jsonSerializerContext);
                     return true;
 
                 case "touchcancel":
@@ -158,7 +188,7 @@ namespace Microsoft.AspNetCore.Components.Web
                 case "touchenter":
                 case "touchleave":
                 case "touchstart":
-                    eventArgs = Deserialize<TouchEventArgs>(eventArgsJson);
+                    eventArgs = Deserialize<TouchEventArgs>(eventArgsJson, jsonSerializerContext);
                     return true;
 
                 case "gotpointercapture":
@@ -171,16 +201,16 @@ namespace Microsoft.AspNetCore.Components.Web
                 case "pointerout":
                 case "pointerover":
                 case "pointerup":
-                    eventArgs = Deserialize<PointerEventArgs>(eventArgsJson);
+                    eventArgs = Deserialize<PointerEventArgs>(eventArgsJson, jsonSerializerContext);
                     return true;
 
                 case "wheel":
                 case "mousewheel":
-                    eventArgs = Deserialize<WheelEventArgs>(eventArgsJson);
+                    eventArgs = Deserialize<WheelEventArgs>(eventArgsJson, jsonSerializerContext);
                     return true;
 
                 case "toggle":
-                    eventArgs = Deserialize<EventArgs>(eventArgsJson);
+                    eventArgs = Deserialize<EventArgs>(eventArgsJson, jsonSerializerContext);
                     return true;
 
                 default:
@@ -218,13 +248,12 @@ namespace Microsoft.AspNetCore.Components.Web
             return null;
         }
 
-        [UnconditionalSuppressMessage("ReflectionAnalysis", "IL2026:RequiresUnreferencedCode", Justification = "The correct members are preserved by DynamicDependencies.")]
         // This should use JSON source generation
-        static T Deserialize<[DynamicallyAccessedMembers(JsonSerialized)] T>(string json) => JsonSerializer.Deserialize<T>(json, JsonSerializerOptionsProvider.Options)!;
+        static T Deserialize<T>(string json, JsonSerializerContext jsonSerializerContext) => (T)JsonSerializer.Deserialize(json, typeof(T), jsonSerializerContext)!;
 
-        private static ChangeEventArgs DeserializeChangeEventArgs(string eventArgsJson)
+        private static ChangeEventArgs DeserializeChangeEventArgs(string eventArgsJson, JsonSerializerContext jsonSerializerContext)
         {
-            var changeArgs = Deserialize<ChangeEventArgs>(eventArgsJson);
+            var changeArgs = Deserialize<ChangeEventArgs>(eventArgsJson, jsonSerializerContext);
             var jsonElement = (JsonElement)changeArgs.Value!;
             switch (jsonElement.ValueKind)
             {
