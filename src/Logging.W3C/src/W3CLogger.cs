@@ -3,6 +3,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.AspNetCore.HttpLogging;
 using System.Diagnostics;
 using System.Collections.Generic;
+using Microsoft.AspNetCore.Http;
 
 namespace Microsoft.Extensions.Logging.W3C
 {
@@ -55,18 +56,23 @@ namespace Microsoft.Extensions.Logging.W3C
 
             if (state is IReadOnlyCollection<KeyValuePair<string, object>> statePropertyObjects)
             {
-                foreach (KeyValuePair<string, object> item in statePropertyObjects)
+                List<KeyValuePair<string, string>> asStrings = new List<KeyValuePair<string, string>>();
+                foreach (KeyValuePair<string, object> kvp in statePropertyObjects)
                 {
-                    _messageQueue.EnqueueMessage(item.ToString());
+                    asStrings.Add(new KeyValuePair<string, string>(kvp.Key, kvp.Value.ToString()));
                 }
+                _messageQueue.EnqueueMessage(Format(asStrings));
             }
             else if (state is IReadOnlyCollection<KeyValuePair<string, string>> statePropertyStrings)
             {
-                foreach (KeyValuePair<string, string> item in statePropertyStrings)
-                {
-                    _messageQueue.EnqueueMessage(item.ToString());
-                }
+                _messageQueue.EnqueueMessage(Format(statePropertyStrings));
             }
+        }
+
+        private string Format(IEnumerable<KeyValuePair<string, string>> stateProperties)
+        {
+
+            return null;
         }
     }
 }

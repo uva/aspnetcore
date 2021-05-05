@@ -9,6 +9,11 @@ namespace Microsoft.Extensions.Logging.W3C
         private string _logDirectory = "C:\\code\\scratch\\W3CLogs";
 
         /// <summary>
+        /// Fields to log. Defaults to logging request and response properties and headers.
+        /// </summary>
+        public W3CLoggingFields LoggingFields { get; set; } = W3CLoggingFields.All;
+
+        /// <summary>
         /// Gets or sets a strictly positive value representing the maximum log size in bytes or null for no limit.
         /// Once the log is full, no more messages will be appended.
         /// Defaults to <c>10MB</c>.

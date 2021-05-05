@@ -80,6 +80,7 @@ namespace Microsoft.Extensions.Logging.W3C
 
         public void Dispose()
         {
+            _messageQueue.Dispose();
         }
 
         private void WriteDirectives()

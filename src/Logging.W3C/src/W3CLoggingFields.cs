@@ -43,8 +43,8 @@ namespace Microsoft.Extensions.Logging.W3C
         UserName = 0x8,
 
         /// <summary>
-        /// Flag for logging the name of the
-        /// authenticated user that accessed the server.
+        /// Flag for logging the Internet service and
+        /// instance number that was accessed by a client.
         /// </summary>
         ServiceName = 0x10,
 
@@ -54,32 +54,94 @@ namespace Microsoft.Extensions.Logging.W3C
         /// </summary>
         ServerName = 0x20,
 
+        /// <summary>
+        /// Flag for logging the IP address of the
+        /// server on which the log entry was generated.
+        /// </summary>
         ServerIpAddress = 0x40,
 
+        /// <summary>
+        /// Flag for logging the port number
+        /// the client is connected to.
+        /// </summary>
         ServerPort = 0x80,
 
+        /// <summary>
+        /// Flag for logging the action
+        /// the client was trying to perform.
+        /// </summary>
         Method = 0x100,
 
+        /// <summary>
+        /// Flag for logging the resource accessed.
+        /// </summary>
         UriStem = 0x200,
 
+        /// <summary>
+        /// Flag for logging the query, if any,
+        /// the client was trying to perform.
+        /// </summary>
         UriQuery = 0x400,
 
+        /// <summary>
+        /// Flag for logging the status of the
+        /// action, in HTTP or FTP terms.
+        /// </summary>
         ProtocolStatus = 0x800,
 
+        /// <summary>
+        /// Flag for logging the number of bytes
+        /// sent by the server.
+        /// </summary>
         BytesSent = 0x1000,
 
+        /// <summary>
+        /// Flag for logging the number of bytes
+        /// received by the server.
+        /// </summary>
         BytesReceived = 0x2000,
 
+        /// <summary>
+        /// Flag for logging the duration of time,
+        /// in milliseconds, that the action consumed.
+        /// </summary>
         TimeTaken = 0x4000,
 
+        /// <summary>
+        /// Flag for logging the protocol (HTTP, FTP) version
+        /// used by the client. For HTTP this will be either
+        /// HTTP 1.0 or HTTP 1.1.
+        /// </summary>
         ProtocolVersion = 0x8000,
 
+        /// <summary>
+        /// Flag for logging the content of the host header.
+        /// </summary>
         Host = 0x10000,
 
+        /// <summary>
+        /// Flag for logging the browser used on the client.
+        /// </summary>
         UserAgent = 0x20000,
 
+        /// <summary>
+        /// Flag for logging the content of the cookie
+        /// sent or received, if any.
+        /// </summary>
         Cookie = 0x40000,
 
-        Referrer = 0x80000
+        /// <summary>
+        /// Flag for logging the previous site visited
+        /// by the user. This site provided a link to
+        /// the current site.
+        /// </summary>
+        Referrer = 0x80000,
+
+        /// <summary>
+        /// Flag for logging all possible fields.
+        /// </summary>
+        All = Date | Time | ClientIpAddress | UserName | ServiceName | ServerName | ServerIpAddress | ServerPort | Method |
+            UriStem | UriQuery | ProtocolStatus | BytesSent | BytesReceived | TimeTaken | ProtocolVersion | Host | UserAgent |
+            Cookie | Referrer
     }
 }
