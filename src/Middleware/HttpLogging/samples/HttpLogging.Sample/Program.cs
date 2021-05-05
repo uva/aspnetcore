@@ -27,6 +27,7 @@ namespace HttpLogging.Sample
                             Indented = true
                         };
                     });
+                    logging.AddW3CLogger();
                 })
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
