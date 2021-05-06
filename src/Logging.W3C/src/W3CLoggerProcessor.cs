@@ -17,6 +17,9 @@ namespace Microsoft.Extensions.Logging.W3C
         private readonly string _path;
         private readonly string _fileName;
         private readonly int? _maxFileSize;
+        private readonly W3CLoggingFields _loggingFields;
+        private bool _hasWritten;
+        private string _fieldsDirective;
 
         private readonly BlockingCollection<string> _messageQueue = new BlockingCollection<string>(_maxQueuedMessages);
         private Task _outputTask;
@@ -27,10 +30,7 @@ namespace Microsoft.Extensions.Logging.W3C
             _path = loggerOptions.LogDirectory;
             _fileName = loggerOptions.FileName;
             _maxFileSize = loggerOptions.FileSizeLimit;
-
-            Directory.CreateDirectory(_path);
-
-            WriteDirectives();
+            _loggingFields = loggerOptions.LoggingFields;
 
             // Start W3C message queue processor
             _outputTask = Task.Run(ProcessLogQueue);
@@ -38,6 +38,11 @@ namespace Microsoft.Extensions.Logging.W3C
 
         public void EnqueueMessage(string message)
         {
+            // Write log directives the first time we log a message
+            if (!_hasWritten)
+            {
+                WriteDirectives();
+            }
             if (!_messageQueue.IsAddingCompleted)
             {
                 try
@@ -85,12 +90,113 @@ namespace Microsoft.Extensions.Logging.W3C
 
         private void WriteDirectives()
         {
+            if (_hasWritten)
+            {
+                return;
+            }
+            _hasWritten = true;
+
+            Directory.CreateDirectory(_path);
             EnqueueMessage("#Version: 1.0");
 
-            var startTimeBuilder = new StringBuilder();
-            startTimeBuilder.Append("#Start-Date: ");
+            var startTimeBuilder = new StringBuilder("#Start-Date: ");
             startTimeBuilder.Append(DateTimeOffset.Now.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture));
             EnqueueMessage(startTimeBuilder.ToString());
+
+            EnqueueMessage(GetFieldsDirective());
+        }
+
+        private string GetFieldsDirective()
+        {
+            if (!String.IsNullOrEmpty(_fieldsDirective))
+            {
+                return _fieldsDirective;
+            }
+
+            StringBuilder sb = new StringBuilder("#Fields: ");
+            if (_loggingFields.HasFlag(W3CLoggingFields.Date))
+            {
+                sb.Append("date ");
+            }
+            if (_loggingFields.HasFlag(W3CLoggingFields.Time))
+            {
+                sb.Append("time ");
+            }
+            if (_loggingFields.HasFlag(W3CLoggingFields.ClientIpAddress))
+            {
+                sb.Append("c-ip ");
+            }
+            if (_loggingFields.HasFlag(W3CLoggingFields.UserName))
+            {
+                sb.Append("cs-username ");
+            }
+            if (_loggingFields.HasFlag(W3CLoggingFields.ServiceName))
+            {
+                sb.Append("s-sitename ");
+            }
+            if (_loggingFields.HasFlag(W3CLoggingFields.ServerName))
+            {
+                sb.Append("s-computername ");
+            }
+            if (_loggingFields.HasFlag(W3CLoggingFields.ServerIpAddress))
+            {
+                sb.Append("s-ip ");
+            }
+            if (_loggingFields.HasFlag(W3CLoggingFields.ServerPort))
+            {
+                sb.Append("s-port ");
+            }
+            if (_loggingFields.HasFlag(W3CLoggingFields.Method))
+            {
+                sb.Append("cs-method ");
+            }
+            if (_loggingFields.HasFlag(W3CLoggingFields.UriStem))
+            {
+                sb.Append("cs-uri-stem ");
+            }
+            if (_loggingFields.HasFlag(W3CLoggingFields.UriQuery))
+            {
+                sb.Append("cs-uri-query ");
+            }
+            if (_loggingFields.HasFlag(W3CLoggingFields.ProtocolStatus))
+            {
+                sb.Append("sc-status ");
+            }
+            if (_loggingFields.HasFlag(W3CLoggingFields.BytesSent))
+            {
+                sb.Append("sc-bytes ");
+            }
+            if (_loggingFields.HasFlag(W3CLoggingFields.BytesReceived))
+            {
+                sb.Append("cs-bytes ");
+            }
+            if (_loggingFields.HasFlag(W3CLoggingFields.TimeTaken))
+            {
+                sb.Append("time-taken ");
+            }
+            if (_loggingFields.HasFlag(W3CLoggingFields.ProtocolVersion))
+            {
+                sb.Append("cs-version ");
+            }
+            if (_loggingFields.HasFlag(W3CLoggingFields.Host))
+            {
+                sb.Append("cs-host ");
+            }
+            if (_loggingFields.HasFlag(W3CLoggingFields.UserAgent))
+            {
+                sb.Append("cs(User-Agent) ");
+            }
+            if (_loggingFields.HasFlag(W3CLoggingFields.Cookie))
+            {
+                sb.Append("cs(Cookie) ");
+            }
+            if (_loggingFields.HasFlag(W3CLoggingFields.Referrer))
+            {
+                sb.Append("cs(Referrer) ");
+            }
+
+            _fieldsDirective = sb.ToString().Trim();
+            return _fieldsDirective;
         }
     }
 }

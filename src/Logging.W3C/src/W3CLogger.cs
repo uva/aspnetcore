@@ -4,16 +4,21 @@ using Microsoft.AspNetCore.HttpLogging;
 using System.Diagnostics;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Http;
+using System.Collections.Specialized;
+using System.Numerics;
+using System.Text;
+using Microsoft.Net.Http.Headers;
+using System.Text.RegularExpressions;
 
 namespace Microsoft.Extensions.Logging.W3C
 {
     internal sealed class W3CLogger : ILogger
     {
-
         private readonly string _name;
         private readonly W3CLoggerProcessor _messageQueue;
         private readonly IOptionsMonitor<W3CLoggerOptions> _options;
         private readonly bool _isActive;
+        private readonly W3CLoggingFields _loggingFields;
 
         internal W3CLogger(string name, IOptionsMonitor<W3CLoggerOptions> options)
         {
@@ -30,6 +35,7 @@ namespace Microsoft.Extensions.Logging.W3C
             {
                 _isActive = true;
                 _messageQueue = new W3CLoggerProcessor(_options);
+                _loggingFields = _options.CurrentValue.LoggingFields;
             }
         }
 
@@ -41,12 +47,12 @@ namespace Microsoft.Extensions.Logging.W3C
 
         public bool IsEnabled(LogLevel logLevel)
         {
-            return _isActive && logLevel != LogLevel.None;
+            return logLevel != LogLevel.None;
         }
 
         public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
         {
-            if (!IsEnabled(logLevel))
+            if (!IsEnabled(logLevel) || !_isActive)
             {
                 return;
             }
@@ -71,8 +77,51 @@ namespace Microsoft.Extensions.Logging.W3C
 
         private string Format(IEnumerable<KeyValuePair<string, string>> stateProperties)
         {
-
-            return null;
+            // Subtract 1 to account for the "All" flag
+            string[] elements = new string[Enum.GetValues(typeof(W3CLoggingFields)).Length - 1];
+            foreach(KeyValuePair<string, string> kvp in stateProperties)
+            {
+                switch (kvp.Key)
+                {
+                    case nameof(HttpRequest.Method):
+                        elements[BitOperations.Log2((int)W3CLoggingFields.Method)] = kvp.Value.Trim();
+                        break;
+                    case nameof(HttpRequest.Query):
+                        elements[BitOperations.Log2((int)W3CLoggingFields.UriQuery)] = kvp.Value.Trim();
+                        break;
+                    case nameof(HttpResponse.StatusCode):
+                        elements[BitOperations.Log2((int)W3CLoggingFields.ProtocolStatus)] = kvp.Value.Trim();
+                        break;
+                    case nameof(HttpRequest.Protocol):
+                        elements[BitOperations.Log2((int)W3CLoggingFields.ProtocolVersion)] = kvp.Value.Trim();
+                        break;
+                    case nameof(HttpRequest.Host):
+                        elements[BitOperations.Log2((int)W3CLoggingFields.Host)] = kvp.Value.Trim();
+                        break;
+                    case "User-Agent":
+                        // User-Agent can have whitespace - we replace whitespace characters with the '+' character
+                        elements[BitOperations.Log2((int)W3CLoggingFields.UserAgent)] = Regex.Replace(kvp.Value.Trim(), @"\s", "+");
+                        break;
+                    default:
+                        break;
+                }
+            }
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < elements.Length; i++)
+            {
+                if (_loggingFields.HasFlag((W3CLoggingFields)(1 << i)))
+                {
+                    if (String.IsNullOrEmpty(elements[i]))
+                    {
+                        sb.Append("- ");
+                    }
+                    else
+                    {
+                        sb.Append(elements[i] + " ");
+                    }
+                }
+            }
+            return sb.ToString().Trim();
         }
     }
 }
