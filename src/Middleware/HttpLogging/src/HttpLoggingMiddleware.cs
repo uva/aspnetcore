@@ -73,7 +73,35 @@ namespace Microsoft.AspNetCore.HttpLogging
         private async Task InvokeInternal(HttpContext context)
         {
             var options = _options.CurrentValue;
-            RequestBufferingStream? requestBufferingStream = null;
+
+            var w3cList = new List<KeyValuePair<string, string?>>();
+
+            if (options.LoggingFields.HasFlag(HttpLoggingFields.DateTime))
+            {
+                AddToList(w3cList, nameof(DateTime), DateTime.Now.ToString(CultureInfo.InvariantCulture));
+            }
+
+            if ((HttpLoggingFields.ConnectionInfoFields & options.LoggingFields) != HttpLoggingFields.None)
+            {
+                var connectionInfo = context.Connection;
+
+                if (options.LoggingFields.HasFlag(HttpLoggingFields.ClientIpAddress))
+                {
+                    AddToList(w3cList, nameof(ConnectionInfo.RemoteIpAddress), connectionInfo.RemoteIpAddress is null ? "" : connectionInfo.RemoteIpAddress.ToString());
+                }
+
+                if (options.LoggingFields.HasFlag(HttpLoggingFields.ServerIpAddress))
+                {
+                    AddToList(w3cList, nameof(ConnectionInfo.LocalIpAddress), connectionInfo.LocalIpAddress is null ? "" : connectionInfo.LocalIpAddress.ToString());
+                }
+
+                if (options.LoggingFields.HasFlag(HttpLoggingFields.ServerPort))
+                {
+                    AddToList(w3cList, nameof(ConnectionInfo.LocalPort), connectionInfo.LocalPort.ToString(CultureInfo.InvariantCulture));
+                }
+            }
+
+            RequestBufferingStream ? requestBufferingStream = null;
             Stream? originalBody = null;
 
             if ((HttpLoggingFields.Request & options.LoggingFields) != HttpLoggingFields.None)
@@ -182,6 +210,11 @@ namespace Microsoft.AspNetCore.HttpLogging
                     {
                         _logger.ResponseBody(responseBody);
                     }
+                }
+                if (w3cList.Count > 0)
+                {
+                    var httpW3CLog = new HttpW3CLog(w3cList);
+                    _logger.W3CLog(httpW3CLog);
                 }
             }
             finally

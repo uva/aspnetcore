@@ -129,6 +129,18 @@ namespace Microsoft.AspNetCore.HttpLogging
         /// </summary>
         ResponseBody = 0x800,
 
+        DateTime = 0x1000,
+
+        ClientIpAddress = 0x2000,
+
+        ServerIpAddress = 0x4000,
+
+        ServerPort = 0x8000,
+
+        ConnectionInfoFields = ClientIpAddress | ServerIpAddress | ServerPort,
+
+        W3CFields = DateTime | ConnectionInfoFields,
+
         /// <summary>
         /// Flag for logging a collection of HTTP Request properties,
         /// including <see cref="RequestPath"/>, <see cref="RequestQuery"/>, <see cref="RequestProtocol"/>,
@@ -171,6 +183,6 @@ namespace Microsoft.AspNetCore.HttpLogging
         /// the entire request and response body up to the <see cref="HttpLoggingOptions.RequestBodyLogLimit"/>
         /// and <see cref="HttpLoggingOptions.ResponseBodyLogLimit"/>.
         /// </summary>
-        All = Request | Response
+        All = Request | Response | W3CFields
     }
 }

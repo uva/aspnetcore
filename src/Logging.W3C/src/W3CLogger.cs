@@ -9,6 +9,7 @@ using System.Numerics;
 using System.Text;
 using Microsoft.Net.Http.Headers;
 using System.Text.RegularExpressions;
+using System.Globalization;
 
 namespace Microsoft.Extensions.Logging.W3C
 {
@@ -101,6 +102,20 @@ namespace Microsoft.Extensions.Logging.W3C
                     case "User-Agent":
                         // User-Agent can have whitespace - we replace whitespace characters with the '+' character
                         elements[BitOperations.Log2((int)W3CLoggingFields.UserAgent)] = Regex.Replace(kvp.Value.Trim(), @"\s", "+");
+                        break;
+                    case nameof(DateTime):
+                        DateTime dto = DateTime.Parse(kvp.Value, CultureInfo.InvariantCulture);
+                        elements[BitOperations.Log2((int)W3CLoggingFields.Date)] = dto.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+                        elements[BitOperations.Log2((int)W3CLoggingFields.Time)] = dto.ToString("HH:mm:ss", CultureInfo.InvariantCulture);
+                        break;
+                    case nameof(ConnectionInfo.RemoteIpAddress):
+                        elements[BitOperations.Log2((int)W3CLoggingFields.ClientIpAddress)] = kvp.Value.Trim();
+                        break;
+                    case nameof(ConnectionInfo.LocalIpAddress):
+                        elements[BitOperations.Log2((int)W3CLoggingFields.ServerIpAddress)] = kvp.Value.Trim();
+                        break;
+                    case nameof(ConnectionInfo.LocalPort):
+                        elements[BitOperations.Log2((int)W3CLoggingFields.ServerPort)] = kvp.Value.Trim();
                         break;
                     default:
                         break;
