@@ -9,7 +9,6 @@ using Microsoft.AspNetCore.BrowserTesting;
 using Microsoft.AspNetCore.Components.E2ETest.Infrastructure;
 using Microsoft.AspNetCore.Components.E2ETest.Infrastructure.ServerFixtures;
 using Microsoft.AspNetCore.Testing;
-using Moq;
 using PlaywrightSharp;
 using Xunit;
 using Xunit.Abstractions;
