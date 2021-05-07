@@ -35,6 +35,11 @@
     <HelixPreCommand Include="call RunPowershell.cmd InstallNode.ps1 $(NodeVersion) || exit /b 1" />
   </ItemGroup>
 
+  <!-- Heavy hammer: Run every test using shared Fx bits. -->
+  <PropertyGroup>
+    <TestDependsOnAspNetRuntime>true</TestDependsOnAspNetRuntime>
+  </PropertyGroup>
+
   <!-- $(TestDependsOnAspNetRuntime) implies $(TestDependsOnAspNetPackages). Separate for the App.UnitTests case. -->
   <PropertyGroup Condition=" $(TestDependsOnAspNetRuntime) AND !$(TestDependsOnAspNetPackages) ">
     <TestDependsOnAspNetPackages>true</TestDependsOnAspNetPackages>
@@ -174,6 +179,13 @@
     <ConvertToAbsolutePath Paths="$(PublishDir)">
       <Output TaskParameter="AbsolutePaths" PropertyName="PublishAbsoluteDir" />
     </ConvertToAbsolutePath>
+
+    <!-- Temporary: Remove assemblies from work item payload found in shared Fx. -->
+    <ItemGroup>
+      <_FilesToDelete Include="$(LocalDotNetRoot)shared\$(SharedFxName)\$(SharedFxVersion)\*.dll" />
+    </ItemGroup>
+    <Delete Files="@(_FilesToDelete->'$(PublishAbsoluteDir)%(Filename)%(Extension)')" />
+
     <ItemGroup>
       <HelixWorkItem Include="$(HelixTestName)">
         <PayloadArchive Condition="'$(HelixUseArchive)' == 'true'">$(PublishAbsoluteDir)../$(HelixTestName).zip</PayloadArchive>
