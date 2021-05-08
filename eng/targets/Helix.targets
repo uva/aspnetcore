@@ -78,7 +78,10 @@
   -->
   <Target Name="Helix">
     <MSBuild Projects="$(MSBuildThisFileDirectory)..\helix\helix.proj"
-             Properties="ProjectToBuild=$(MSBuildProjectFullPath)" />
+             Properties="Configuration=$(Configuration);
+                         PlatformName=$(PlatformName);
+                         ProjectToBuild=$(MSBuildProjectFullPath);
+                         RepoRoot=$(RepoRoot)" />
   </Target>
 
   <!-- Build the actual helix work items to send to helix queues -->
