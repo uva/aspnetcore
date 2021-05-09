@@ -32,6 +32,9 @@ $ProgressPreference = 'SilentlyContinue' # Workaround PowerShell/PowerShell#2138
 
 Set-StrictMode -Version 1
 
+# Not set globally because we're bypassing the Arcade override that ensures a trailing slash.
+$RepoRoot = Resolve-Path (Join-Path $PSScriptRoot '..\..')
+
 $env:BUILD_REASON="PullRequest"
 $env:BUILD_SOURCEBRANCH="local"
 $env:BUILD_REPOSITORY_NAME="aspnetcore"
@@ -43,4 +46,5 @@ Write-Host -ForegroundColor Yellow "And if packing for a different platform, add
 $HelixQueues = $HelixQueues -replace ";", "%3B"
 dotnet msbuild $Project /t:Helix /p:TargetArchitecture="$TargetArchitecture" /p:IsRequiredCheck=true `
     /p:IsHelixDaily=true /p:HelixTargetQueues=$HelixQueues /p:RunQuarantinedTests=$RunQuarantinedTests `
-    /p:_UseHelixOpenQueues=true /p:CrossgenOutput=false /p:ASPNETCORE_TEST_LOG_DIR=artifacts/log
+    /p:_UseHelixOpenQueues=true /p:ASPNETCORE_TEST_LOG_DIR=artifacts/log `
+    /bl:$RepoRoot/artifacts/log/RunHelix.binlog
