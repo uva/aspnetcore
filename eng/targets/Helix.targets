@@ -178,11 +178,17 @@
       <Output TaskParameter="AbsolutePaths" PropertyName="PublishAbsoluteDir" />
     </ConvertToAbsolutePath>
 
-    <!-- Temporary: Remove assemblies from work item payload found in shared Fx. -->
+    <!-- Another heavy hammer: Overwrite assemblies from work item payload with those found in shared Fx. -->
     <ItemGroup>
-      <_FilesToDelete Include="$(LocalDotNetRoot)shared\$(SharedFxName)\$(SharedFxVersion)\*.dll" />
+      <_FilesToUse Include="$(LocalDotNetRoot)shared\$(SharedFxName)\$(SharedFxVersion)\*.dll"
+          Condition=" EXISTS('$(PublishAbsoluteDir)%(Filename).dll') " />
     </ItemGroup>
-    <Delete Files="@(_FilesToDelete->'$(PublishAbsoluteDir)%(Filename)%(Extension)')" />
+    <Copy SourceFiles="@(_FilesToUse)"
+        DestinationFolder="$(PublishAbsoluteDir)"
+        OverwriteReadOnlyFiles="$(OverwriteReadOnlyFiles)"
+        Retries="$(CopyRetryCount)"
+        RetryDelayMilliseconds="$(CopyRetryDelayMilliseconds)"
+        SkipUnchangedFiles="$(SkipCopyUnchangedFiles)" />
 
     <ItemGroup>
       <HelixWorkItem Include="$(HelixTestName)">
