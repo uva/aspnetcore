@@ -84,6 +84,10 @@ namespace Microsoft.AspNetCore.Authentication.OpenIdConnect
             {
                 return HandleSignOutCallbackAsync();
             }
+            else if (Options.InitiationPath.HasValue && Options.InitiationPath == Request.Path)
+            {
+                return HandleInitiationAsync();
+            }
 
             return base.HandleRequestAsync();
         }
@@ -352,7 +356,7 @@ namespace Microsoft.AspNetCore.Authentication.OpenIdConnect
             Logger.HandleChallenge(location, cookie);
         }
 
-        private async Task HandleChallengeAsyncInternal(AuthenticationProperties properties)
+        private async Task HandleChallengeAsyncInternal(AuthenticationProperties properties, IDictionary<string, string> extraParams = null)
         {
             Logger.EnteringOpenIdAuthenticationHandlerHandleUnauthorizedAsync(GetType().FullName);
 
@@ -379,8 +383,13 @@ namespace Microsoft.AspNetCore.Authentication.OpenIdConnect
                 Resource = Options.Resource,
                 ResponseType = Options.ResponseType,
                 Prompt = properties.GetParameter<string>(OpenIdConnectParameterNames.Prompt) ?? Options.Prompt,
-                Scope = string.Join(" ", properties.GetParameter<ICollection<string>>(OpenIdConnectParameterNames.Scope) ?? Options.Scope),
+                Scope = string.Join(" ", properties.GetParameter<ICollection<string>>(OpenIdConnectParameterNames.Scope) ?? Options.Scope)
             };
+            if (extraParams != null)
+            {
+                foreach (var param in extraParams)
+                    message.Parameters.Add(param.Key, param.Value);
+            }
 
             // https://tools.ietf.org/html/rfc7636
             if (Options.UsePkce && Options.ResponseType == OpenIdConnectResponseType.Code)
@@ -484,6 +493,20 @@ namespace Microsoft.AspNetCore.Authentication.OpenIdConnect
             }
 
             throw new NotImplementedException($"An unsupported authentication method has been configured: {Options.AuthenticationMethod}");
+        }
+
+        private async Task<bool> HandleInitiationAsync()
+        {
+            if (Options.ClientId != Request.Form["client_id"].First())
+                return await base.HandleRequestAsync();
+            await HandleChallengeAsyncInternal(
+                new AuthenticationProperties() { RedirectUri = Request.Form["target_link_uri"] },
+                new Dictionary<string, string>
+                {
+                    ["login_hint"] = Request.Form["login_hint"],
+                    ["lti_message_hint"] = Request.Form["lti_message_hint"]
+                });
+            return true;
         }
 
         /// <summary>

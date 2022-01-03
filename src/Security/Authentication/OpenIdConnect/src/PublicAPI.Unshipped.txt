@@ -1,1 +1,3 @@
 #nullable enable
+Microsoft.AspNetCore.Authentication.OpenIdConnect.OpenIdConnectOptions.InitiationPath.get -> Microsoft.AspNetCore.Http.PathString
+Microsoft.AspNetCore.Authentication.OpenIdConnect.OpenIdConnectOptions.InitiationPath.set -> void

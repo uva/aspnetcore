@@ -36,6 +36,7 @@ namespace Microsoft.AspNetCore.Authentication.OpenIdConnect
         /// </remarks>
         public OpenIdConnectOptions()
         {
+            InitiationPath = PathString.Empty;
             CallbackPath = new PathString("/signin-oidc");
             SignedOutCallbackPath = new PathString("/signout-callback-oidc");
             RemoteSignOutPath = new PathString("/signout-oidc");
@@ -163,6 +164,12 @@ namespace Microsoft.AspNetCore.Authentication.OpenIdConnect
             get => (OpenIdConnectEvents)base.Events;
             set => base.Events = value;
         }
+
+        /// <summary>
+        /// The request path within the application's base path for a third-party initiated flow.
+        /// The middleware will process this request when it arrives.
+        /// </summary>
+        public PathString InitiationPath { get; set; }
 
         /// <summary>
         /// Gets or sets the 'max_age'. If set the 'max_age' parameter will be sent with the authentication request. If the identity
